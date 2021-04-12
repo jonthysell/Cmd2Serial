@@ -63,6 +63,11 @@ Options:
                      RequestToSendXOnXOff - Both RTS and XON/XOFF are used
 ```
 
+### Examples ###
+
+Forwarding a Windows command prompt to the COM3 serial port: `cmd2serial --PortName COM3 cmd.exe /A /Q`
+
+
 ## Errata ##
 
 Cmd2Serial is open-source under the MIT license.
