@@ -1,5 +1,5 @@
 # Cmd2Serial ChangeLog #
 
-## unreleased ##
+## v1.0 ##
 
 * First release
