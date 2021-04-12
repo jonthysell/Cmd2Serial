@@ -107,7 +107,7 @@ namespace Cmd2Serial
                                     break;
                                 case "--stopbits":
                                 case "/stopbits":
-                                    if (!Enum.TryParse(args[++i], true, out StopBits stopBits))
+                                    if (!Enum.TryParse(args[++i], true, out StopBits stopBits) || stopBits == StopBits.None)
                                     {
                                         throw new Exception($"Stop bits value invalid. See --help for valid values.");
                                     }
