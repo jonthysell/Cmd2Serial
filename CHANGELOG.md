@@ -1,6 +1,6 @@
 # Cmd2Serial ChangeLog #
 
-## next ##
+## v1.1 ##
 
 * Refactored bridge to remove encoding assumptions and enable more scenarios
 * Cleaned up help and usage
