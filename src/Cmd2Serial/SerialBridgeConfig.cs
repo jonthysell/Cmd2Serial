@@ -23,6 +23,12 @@ namespace Cmd2Serial
 
         #endregion
 
+        public NewLines CommandToSerialNewLines = NewLines.None;
+
+        public NewLines SerialToCommandNewLines = NewLines.None;
+
+        public bool SerialEcho = false;
+
         #region Command
 
         public string Command = @"";
@@ -32,5 +38,13 @@ namespace Cmd2Serial
         public string FullCommand => Command + (!string.IsNullOrWhiteSpace(CommandArgs) ? " " + CommandArgs : "");
 
         #endregion
+    }
+
+    public enum NewLines
+    {
+        None,
+        CR,
+        LF,
+        CRLF,
     }
 }

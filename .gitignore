@@ -354,3 +354,5 @@ MigrationBackup/
 
 # VS 2019 Performace Profiler results
 *.diagsession
+
+**/launchSettings.json

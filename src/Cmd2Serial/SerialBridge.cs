@@ -2,10 +2,12 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using System.IO.Ports;
 
 namespace Cmd2Serial
@@ -45,9 +47,7 @@ namespace Cmd2Serial
             Config = config;
             _sp = new SerialPort(Config.PortName, Config.BaudRate, Config.Parity, Config.DataBits, Config.StopBits)
             {
-                Encoding = Encoding.ASCII,
                 Handshake = config.Handshake,
-                NewLine = Environment.NewLine,
             };
         }
 
@@ -72,7 +72,6 @@ namespace Cmd2Serial
             _process.StartInfo.RedirectStandardInput = true;
             _process.StartInfo.RedirectStandardOutput = true;
             _process.StartInfo.RedirectStandardError = true;
-            _process.StartInfo.StandardOutputEncoding = Encoding.ASCII;
 
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
@@ -86,81 +85,19 @@ namespace Cmd2Serial
             {
                 throw new Exception($"Unable to start command process \"{Config.FullCommand}\".", ex);
             }
-            
+
             Logger.VerboseWriteLine($" done.");
 
             Logger.VerboseWrite($"Linking command output to serial...");
-            var cmdReader = _process.StandardOutput;
-            var fromCmdToSerialTask = Task.Run(async () =>
-            {
-                char[] buffer = new char[2048];
-                while (!token.IsCancellationRequested)
-                {
-                    if (!cmdReader.EndOfStream)
-                    {
-                        int numChars = await cmdReader.ReadAsync(buffer, 0, buffer.Length);
-                        if (numChars > 0)
-                        {
-                            _sp.Write(buffer, 0, numChars);
-                            Console.Write(buffer, 0, numChars);
-                        }
-                    }
-
-                    await Task.Yield();
-                }
-            });
+            var cmdOutToSerialTask = StartBridgeAsync(_process.StandardOutput.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
             Logger.VerboseWriteLine($" done.");
 
             Logger.VerboseWrite($"Linking command errors to serial...");
-            var cmdErrorReader = _process.StandardError;
-            var fromCmdErrorToSerialTask = Task.Run(async () =>
-            {
-                char[] buffer = new char[2048];
-                while (!token.IsCancellationRequested)
-                {
-                    if (!cmdErrorReader.EndOfStream)
-                    {
-                        int numChars = await cmdErrorReader.ReadAsync(buffer, 0, buffer.Length);
-                        if (numChars > 0)
-                        {
-                            _sp.Write(buffer, 0, numChars);
-                            Console.Write(buffer, 0, numChars);
-                        }
-                    }
-
-                    await Task.Yield();
-                }
-            });
+            var cmdErrToSerialTask = StartBridgeAsync(_process.StandardError.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
             Logger.VerboseWriteLine($" done.");
 
-            Logger.VerboseWrite($"Linking command input to serial...");
-            var cmdWriter = _process.StandardInput;
-            var fromSerialToCmdTask = Task.Run(async () =>
-            {
-                char previousValue = '\0';
-                while (!token.IsCancellationRequested)
-                {
-                    var c = _sp.ReadChar();
-                    var newValue = (char)c;
-
-                    // Echo
-                    _sp.Write(newValue.ToString());
-
-                    if (newValue == '\r' || (newValue == '\n' && previousValue != '\r'))
-                    {
-                        Console.WriteLine();
-                        await cmdWriter.WriteLineAsync();
-                    }
-                    else
-                    {
-                        Console.Write(newValue);
-                        await cmdWriter.WriteAsync(newValue);
-                    }
-                    previousValue = newValue;
-
-                    await Task.Yield();
-                }
-            });
+            Logger.VerboseWrite($"Linking serial to command input...");
+            var serialToCmdTask = StartBridgeAsync(_sp.BaseStream, _process.StandardInput.BaseStream, Config.SerialToCommandNewLines, Config.SerialEcho, Config.SerialEcho, token);
             Logger.VerboseWriteLine($" done.");
 
             while (!token.IsCancellationRequested)
@@ -168,9 +105,127 @@ namespace Cmd2Serial
                 await Task.Delay(100);
             }
 
+            Logger.VerboseWrite($"Closing process...");
+            _process.Close();
+            Logger.VerboseWriteLine($" done.");
+
             Logger.VerboseWrite($"Closing serial port...");
             _sp.Close();
             Logger.VerboseWriteLine($" done.");
+        }
+
+        private void Process_Exited(object sender, EventArgs e)
+        {
+            Logger.VerboseWriteLine($"Command process exited.");
+            _cts.Cancel();
+        }
+
+        private delegate int ReadByte();
+        private delegate Task<int> ReadBytesAsync(byte[] buffer, int offset, int length);
+        private delegate void WriteByte(byte b);
+        private delegate void WriteBytes(byte[] buffer, int offset, int length);
+        private delegate void Flush();
+
+        private async Task StartBridgeAsync(Stream input, Stream output, NewLines newLines, bool logOutput, bool echoInput, CancellationToken token)
+        {
+            var buffer = new byte[4096];
+            int previousByte = -1;
+
+            while (!token.IsCancellationRequested)
+            {
+                await Task.Yield();
+
+                if (newLines == NewLines.None)
+                {
+                    int numBytes = await input.ReadAsync(buffer, 0, buffer.Length, token);
+                    if (numBytes > 0)
+                    {
+                        if (echoInput)
+                        {
+                            input.Write(buffer, 0, numBytes);
+                            input.Flush();
+                        }
+                        output.Write(buffer, 0, numBytes);
+                        output.Flush();
+                        if (logOutput)
+                        {
+                            Logger.WriteBytes(buffer, 0, numBytes);
+                        }
+                    }
+                }
+                else
+                {
+                    var byteRead = input.ReadByte();
+
+                    if (byteRead >= 0)
+                    {
+                        if (byteRead == 0x0D || (byteRead == 0x0A && previousByte != 0x0D))
+                        {
+                            switch (newLines)
+                            {
+                                case NewLines.CR:
+                                    if (echoInput)
+                                    {
+                                        input.WriteByte(0x0D);
+                                        input.Flush();
+                                    }
+                                    output.WriteByte(0x0D);
+                                    output.Flush();
+                                    if (logOutput)
+                                    {
+                                        Logger.WriteByte(0x0D);
+                                    }
+                                    break;
+                                case NewLines.LF:
+                                    if (echoInput)
+                                    {
+                                        input.WriteByte(0x0A);
+                                        input.Flush();
+                                    }
+                                    output.WriteByte(0x0A);
+                                    output.Flush();
+                                    if (logOutput)
+                                    {
+                                        Logger.WriteByte(0x0A);
+                                    }
+                                    break;
+                                case NewLines.CRLF:
+                                    if (echoInput)
+                                    {
+                                        input.WriteByte(0x0D);
+                                        input.WriteByte(0x0A);
+                                        input.Flush();
+                                    }
+                                    output.WriteByte(0x0D);
+                                    output.WriteByte(0x0A);
+                                    output.Flush();
+                                    if (logOutput)
+                                    {
+                                        Logger.WriteByte(0x0D);
+                                        Logger.WriteByte(0x0A);
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            if (echoInput)
+                            {
+                                input.WriteByte((byte)byteRead);
+                                input.Flush();
+                            }
+                            output.WriteByte((byte)byteRead);
+                            output.Flush();
+                            if (logOutput)
+                            {
+                                Logger.WriteByte((byte)byteRead);
+                            }
+                        }
+                    }
+
+                    previousByte = byteRead;
+                }
+            }
         }
 
         public void Cancel()
@@ -179,12 +234,6 @@ namespace Cmd2Serial
             Logger.VerboseWriteLine($"Cancellation requested.");
             _cts.Cancel();
             _process.Kill();
-        }
-
-        private void Process_Exited(object sender, EventArgs e)
-        {
-            Logger.VerboseWriteLine($"Command process exited.");
-            _cts.Cancel();
         }
     }
 }

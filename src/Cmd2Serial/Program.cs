@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Text;
 
 namespace Cmd2Serial
 {
@@ -12,9 +11,19 @@ namespace Cmd2Serial
 
         public static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
+            Console.CursorVisible = false;
 
             Logger.LogWrite += Console.Write;
+            Logger.LogWriteBytes += (buffer, offset, count) =>
+            {
+                Console.Write(Console.OutputEncoding.GetChars(buffer, 0, count));
+                Console.Out.Flush();
+            };
+            Logger.LogWriteByte += (b) =>
+            {
+                Console.Write((char)b);
+                Console.Out.Flush();
+            };
 
             var p = new Program(args);
             p.Run();
@@ -132,7 +141,7 @@ namespace Cmd2Serial
         private static void ShowHelp()
         {
             Console.WriteLine("Usage: cmd2serial [--version] [--help]");
-            Console.WriteLine("                  [options...] command [command args]");
+            Console.WriteLine("                  [options...] command [args...]");
             Console.WriteLine();
 
             Console.WriteLine("Options:");
@@ -143,24 +152,51 @@ namespace Cmd2Serial
             Console.WriteLine($"-l, --list         List serial port names");
             Console.WriteLine();
 
-            Console.WriteLine($"--PortName value   Set the port name (required)");
-            Console.WriteLine($"--BaudRate value   Set the baud rate, default: {ProgramArgs.Default.Config.BaudRate}");
-            Console.WriteLine($"--Parity value     Set the parity bit:");
-            Console.WriteLine($"                     None - No parity check occurs (default)");
-            Console.WriteLine($"                     Odd - Sets the parity bit so that the count of bits set is an odd number");
-            Console.WriteLine($"                     Even - Sets the parity bit so that the count of bits set is an even number");
-            Console.WriteLine($"                     Mark - Leaves the parity bit set to 1");
-            Console.WriteLine($"                     Space - Leaves the parity bit set to 0");
-            Console.WriteLine($"--DataBits value   Set the data bits, default: {ProgramArgs.Default.Config.DataBits}");
-            Console.WriteLine($"--StopBits value   Set the stop bits:");
-            Console.WriteLine($"                     One - One stop bit is used (default)");
-            Console.WriteLine($"                     Two - Two stop bits are used");
-            Console.WriteLine($"                     OnePointFive - 1.5 stop bits are used");
-            Console.WriteLine($"--Handshake value  Set the flow control:");
-            Console.WriteLine($"                     None - No control is used for the handshake (default)");
-            Console.WriteLine($"                     XOnXOff - The XON/XOFF software control protocol is used");
-            Console.WriteLine($"                     RequestToSend - Request-to-Send (RTS) hardware flow control is used");
-            Console.WriteLine($"                     RequestToSendXOnXOff - Both RTS and XON/XOFF are used");
+            Console.WriteLine($"--PortName value   The port name to use (required)");
+            Console.WriteLine();
+
+            Console.WriteLine($"--BaudRate value   The baud rate to use, default: {ProgramArgs.Default.Config.BaudRate}");
+            Console.WriteLine();
+
+            Console.WriteLine($"--Parity value     The parity bit to use:");
+            Console.WriteLine($"  None - No parity check occurs (default)");
+            Console.WriteLine($"  Odd - Sets the parity bit so that the count of bits set is an odd number");
+            Console.WriteLine($"  Even - Sets the parity bit so that the count of bits set is an even number");
+            Console.WriteLine($"  Mark - Leaves the parity bit set to 1");
+            Console.WriteLine($"  Space - Leaves the parity bit set to 0");
+            Console.WriteLine();
+
+            Console.WriteLine($"--DataBits value   The number of data bits to use, default: {ProgramArgs.Default.Config.DataBits}");
+            Console.WriteLine();
+
+            Console.WriteLine($"--StopBits value   The stop bits to use:");
+            Console.WriteLine($"  One          - One stop bit is used (default)");
+            Console.WriteLine($"  Two          - Two stop bits are used");
+            Console.WriteLine($"  OnePointFive - 1.5 stop bits are used");
+            Console.WriteLine();
+
+            Console.WriteLine($"--Handshake value  The flow control to use:");
+            Console.WriteLine($"  None - No control is used for the handshake (default)");
+            Console.WriteLine($"  XOnXOff - The XON/XOFF software control protocol is used");
+            Console.WriteLine($"  RequestToSend - Request-to-Send (RTS) hardware flow control is used");
+            Console.WriteLine($"  RequestToSendXOnXOff - Both RTS and XON/XOFF are used");
+            Console.WriteLine();
+
+            Console.WriteLine($"--SerialEcho  Echo input from the serial port back out to the serial port");
+            Console.WriteLine();
+
+            Console.WriteLine($"--SerialToCommandNewLines value  Convert new lines from serial output to command input:");
+            Console.WriteLine($"  None - No conversion (default)");
+            Console.WriteLine($"  CR   - Convert new lines to CR");
+            Console.WriteLine($"  LF   - Convert new lines to LF");
+            Console.WriteLine($"  CRLF - Convert new lines to CRLF");
+            Console.WriteLine();
+
+            Console.WriteLine($"--CommandToSerialNewLines value  Convert new lines from command output to serial input:");
+            Console.WriteLine($"  None - No conversion (default)");
+            Console.WriteLine($"  CR   - Convert new lines to CR");
+            Console.WriteLine($"  LF   - Convert new lines to LF");
+            Console.WriteLine($"  CRLF - Convert new lines to CRLF");
         }
 
         #endregion

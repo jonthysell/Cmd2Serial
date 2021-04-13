@@ -121,6 +121,26 @@ namespace Cmd2Serial
                                     }
                                     result.Config.Handshake = handshake;
                                     break;
+                                case "--serialecho":
+                                case "/serialecho":
+                                    result.Config.SerialEcho = true;
+                                    break;
+                                case "--commandtoserialnewlines":
+                                case "/commandtoserialnewlines":
+                                    if (!Enum.TryParse(args[++i], true, out NewLines commandToSerialNewLines))
+                                    {
+                                        throw new Exception($"Command to serial new lines value invalid. See --help for valid values.");
+                                    }
+                                    result.Config.CommandToSerialNewLines = commandToSerialNewLines;
+                                    break;
+                                case "--serialtocommandnewlines":
+                                case "/serialtocommandnewlines":
+                                    if (!Enum.TryParse(args[++i], true, out NewLines serialToCommandNewLines))
+                                    {
+                                        throw new Exception($"Serial to command new lines value invalid. See --help for valid values.");
+                                    }
+                                    result.Config.SerialToCommandNewLines = serialToCommandNewLines;
+                                    break;
                                 default:
                                     parseCommand = true;
                                     i--;

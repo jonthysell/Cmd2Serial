@@ -11,6 +11,10 @@ namespace Cmd2Serial
 
         public static event Action<string> LogWrite;
 
+        public static event Action<byte[], int, int> LogWriteBytes;
+
+        public static event Action<byte> LogWriteByte;
+
         public static void Write(string msg)
         {
             LogWrite?.Invoke(msg);
@@ -35,6 +39,16 @@ namespace Cmd2Serial
             {
                 WriteLine(msg);
             }
+        }
+
+        public static void WriteBytes(byte[] buffer, int offset, int count)
+        {
+            LogWriteBytes?.Invoke(buffer, offset, count);
+        }
+
+        public static void WriteByte(byte b)
+        {
+            LogWriteByte?.Invoke(b);
         }
     }
 }
