@@ -27,6 +27,8 @@ namespace Cmd2Serial
 
             var p = new Program(args);
             p.Run();
+
+            Console.CursorVisible = true;
         }
 
         private static void PrintException(Exception ex)
