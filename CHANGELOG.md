@@ -1,6 +1,6 @@
 # Cmd2Serial ChangeLog #
 
-## next ##
+## v1.2 ##
 
 * Fixed issue with disappearing cursor
 
