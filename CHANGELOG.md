@@ -1,5 +1,11 @@
 # Cmd2Serial ChangeLog #
 
+## next ##
+
+* Added x64 Windows build
+* Added --RedirectInput, --RedirectOutput, --RedirectError to control connections
+* Changed --SerialEcho to take a boolean value
+
 ## v1.2 ##
 
 * Fixed issue with disappearing cursor

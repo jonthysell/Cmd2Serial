@@ -27,7 +27,13 @@ namespace Cmd2Serial
 
         public NewLines SerialToCommandNewLines = NewLines.None;
 
-        public bool SerialEcho = false;
+        public bool SerialEcho = false;        
+
+        public bool RedirectOutput = true;
+
+        public bool RedirectError = true;
+
+        public bool RedirectInput = true;
 
         #region Command
 

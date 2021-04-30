@@ -12,10 +12,12 @@ Cmd2Serial was written in C# and should run anywhere that supports [.NET 5.0](ht
 
 ### Windows ###
 
-The Windows release is a self-contained x86 binary and runs on Windows 7 SP1+, 8.1, and 10.
+The Windows release is a self-contained x86/x64 binary which run on Windows 7 SP1+, 8.1, and 10.
 
-1. Download the latest Windows zip file (Cmd2Serial.Windows.zip) from https://github.com/jonthysell/Cmd2Serial/releases/latest
+1. Download the latest Windows zip file (Cmd2Serial.Win64.zip *or* Cmd2Serial.Win32.zip) from https://github.com/jonthysell/Cmd2Serial/releases/latest
 2. Extract the zip file
+
+**Note:** If you're unsure which version to download, try Cmd2Serial.Win64.zip first. Most modern PCs are 64-Bit.
 
 ### MacOS ###
 

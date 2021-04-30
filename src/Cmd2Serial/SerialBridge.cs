@@ -88,17 +88,26 @@ namespace Cmd2Serial
 
             Logger.VerboseWriteLine($" done.");
 
-            Logger.VerboseWrite($"Linking command output to serial...");
-            var cmdOutToSerialTask = StartBridgeAsync(_process.StandardOutput.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
-            Logger.VerboseWriteLine($" done.");
+            if (Config.RedirectOutput)
+            {
+                Logger.VerboseWrite($"Linking command output to serial...");
+                var cmdOutToSerialTask = StartBridgeAsync(_process.StandardOutput.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
+                Logger.VerboseWriteLine($" done.");
+            }
 
-            Logger.VerboseWrite($"Linking command errors to serial...");
-            var cmdErrToSerialTask = StartBridgeAsync(_process.StandardError.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
-            Logger.VerboseWriteLine($" done.");
+            if (Config.RedirectError)
+            {
+                Logger.VerboseWrite($"Linking command errors to serial...");
+                var cmdErrToSerialTask = StartBridgeAsync(_process.StandardError.BaseStream, _sp.BaseStream, Config.CommandToSerialNewLines, true, false, token);
+                Logger.VerboseWriteLine($" done.");
+            }
 
-            Logger.VerboseWrite($"Linking serial to command input...");
-            var serialToCmdTask = StartBridgeAsync(_sp.BaseStream, _process.StandardInput.BaseStream, Config.SerialToCommandNewLines, Config.SerialEcho, Config.SerialEcho, token);
-            Logger.VerboseWriteLine($" done.");
+            if (Config.RedirectInput)
+            {
+                Logger.VerboseWrite($"Linking serial to command input...");
+                var serialToCmdTask = StartBridgeAsync(_sp.BaseStream, _process.StandardInput.BaseStream, Config.SerialToCommandNewLines, Config.SerialEcho, Config.SerialEcho, token);
+                Logger.VerboseWriteLine($" done.");
+            }
 
             while (!token.IsCancellationRequested)
             {

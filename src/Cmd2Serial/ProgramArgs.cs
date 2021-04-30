@@ -121,10 +121,6 @@ namespace Cmd2Serial
                                     }
                                     result.Config.Handshake = handshake;
                                     break;
-                                case "--serialecho":
-                                case "/serialecho":
-                                    result.Config.SerialEcho = true;
-                                    break;
                                 case "--commandtoserialnewlines":
                                 case "/commandtoserialnewlines":
                                     if (!Enum.TryParse(args[++i], true, out NewLines commandToSerialNewLines))
@@ -140,6 +136,38 @@ namespace Cmd2Serial
                                         throw new Exception($"Serial to command new lines value invalid. See --help for valid values.");
                                     }
                                     result.Config.SerialToCommandNewLines = serialToCommandNewLines;
+                                    break;
+                                case "--serialecho":
+                                case "/serialecho":
+                                    if (!bool.TryParse(args[++i], out bool serialEcho))
+                                    {
+                                        throw new Exception("Serial echo value invalid. Must be True or False.");
+                                    }
+                                    result.Config.SerialEcho = serialEcho;
+                                    break;
+                                case "--redirectoutput":
+                                case "/redirectoutput":
+                                    if (!bool.TryParse(args[++i], out bool redirectOutput))
+                                    {
+                                        throw new Exception("Redirect output value invalid. Must be True or False.");
+                                    }
+                                    result.Config.RedirectOutput = redirectOutput;
+                                    break;
+                                case "--redirecterror":
+                                case "/redirecterror":
+                                    if (!bool.TryParse(args[++i], out bool redirectError))
+                                    {
+                                        throw new Exception("Redirect error value invalid. Must be True or False.");
+                                    }
+                                    result.Config.RedirectError = redirectError;
+                                    break;
+                                case "--redirectinput":
+                                case "/redirectinput":
+                                    if (!bool.TryParse(args[++i], out bool redirectInput))
+                                    {
+                                        throw new Exception("Redirect input value invalid. Must be True or False.");
+                                    }
+                                    result.Config.RedirectInput = redirectInput;
                                     break;
                                 default:
                                     parseCommand = true;
