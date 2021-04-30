@@ -40,25 +40,25 @@ Usage: cmd2serial [--version] [--help]
                   [options...] command [args...]
 
 Options:
--h, --help         Show this help
--v, --verbose      Show verbose output
+-h, --help        Show this help
+-v, --verbose     Show verbose output
 
--l, --list         List serial port names
+-l, --list        List serial port names
 
---PortName value   The port name to use (required)
+--PortName value  The port name to use (required)
 
---BaudRate value   The baud rate to use, default: 9600
+--BaudRate value  The baud rate to use, default: 9600
 
---Parity value     The parity bit to use:
+--Parity value  The parity bit to use:
   None - No parity check occurs (default)
   Odd - Sets the parity bit so that the count of bits set is an odd number
   Even - Sets the parity bit so that the count of bits set is an even number
   Mark - Leaves the parity bit set to 1
   Space - Leaves the parity bit set to 0
 
---DataBits value   The number of data bits to use, default: 8
+--DataBits value  The number of data bits to use, default: 8
 
---StopBits value   The stop bits to use:
+--StopBits value  The stop bits to use:
   One          - One stop bit is used (default)
   Two          - Two stop bits are used
   OnePointFive - 1.5 stop bits are used
@@ -68,8 +68,6 @@ Options:
   XOnXOff - The XON/XOFF software control protocol is used
   RequestToSend - Request-to-Send (RTS) hardware flow control is used
   RequestToSendXOnXOff - Both RTS and XON/XOFF are used
-
---SerialEcho  Echo input from the serial port back out to the serial port
 
 --SerialToCommandNewLines value  Convert new lines from serial output to command input:
   None - No conversion (default)
@@ -82,11 +80,19 @@ Options:
   CR   - Convert new lines to CR
   LF   - Convert new lines to LF
   CRLF - Convert new lines to CRLF
+
+--SerialEcho value  Echo input from the serial port back out to the serial port, default: False
+
+--RedirectOutput value  Pass command output to the serial input, default: True
+
+--RedirectError value  Pass command errors to the serial input, default: True
+
+--RedirectInput value  Pass serial output to the command input, default: True
 ```
 
 ### Examples ###
 
-Forwarding a Windows command prompt to the COM3 serial port: `cmd2serial --PortName COM3 -SerialToCommandNewLines CRLF --SerialEcho cmd.exe /A /Q`
+Forwarding a Windows command prompt to the COM3 serial port: `cmd2serial --PortName COM3 -SerialToCommandNewLines CRLF --SerialEcho True cmd.exe /A /Q`
 
 ## Errata ##
 
