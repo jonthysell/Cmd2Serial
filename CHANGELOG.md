@@ -1,6 +1,6 @@
 # Cmd2Serial ChangeLog #
 
-## next ##
+## v1.3 ##
 
 * Added x64 Windows build
 * Added --RedirectInput, --RedirectOutput, --RedirectError to control connections

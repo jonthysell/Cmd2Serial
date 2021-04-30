@@ -6,7 +6,7 @@
     <Copyright>Copyright © 2021 Jon Thysell</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/jonthysell/Cmd2Serial</RepositoryUrl>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
   </PropertyGroup>
